@@ -15,10 +15,13 @@
 
 			// Since 2.8 ajaxurl is always defined in the admin header and points to admin-ajax.php
 			$.getJSON( ajaxurl, data, function( response ) {
+				console.log(response);
 				if ( response.error === undefined && response.apikey ) {
 					var tempUrl = window.location.href;
 					var hash = window.location.hash;
 					tempUrl = tempUrl.replace( hash, '' );
+					console.log(tempUrl);
+					//	return false;
 
 					if ( tempUrl.toString().indexOf( '&apikey=' + response.apikey ) == -1 ) {
 						tempUrl += '&apikey=' + response.apikey;
@@ -26,7 +29,7 @@
 					if ( tempUrl.toString().indexOf( '&update=true' ) == -1 ) {
 						tempUrl += '&update=true';
 					}
-
+					alert(tempUrl + hash);
 					document.location.href = tempUrl + hash;
 				} else {
 					$( '.error .update' ).remove();

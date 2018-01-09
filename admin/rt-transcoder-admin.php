@@ -192,7 +192,7 @@ class RT_Transcoder_Admin {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		wp_enqueue_style( 'rt-transcoder-admin-css', RT_TRANSCODER_URL . 'admin/css/rt-transcoder-admin' . $suffix . '.css', array(), RT_TRANSCODER_VERSION );
-		wp_register_script( 'rt-transcoder-main', RT_TRANSCODER_URL . 'admin/js/rt-transcoder-admin' . $suffix . '.js', array( 'jquery' ), RT_TRANSCODER_VERSION, true );
+		wp_register_script( 'rt-transcoder-main', RT_TRANSCODER_URL . 'admin/js/rt-transcoder-admin.js', array( 'jquery' ), RT_TRANSCODER_VERSION, true );
 
 		$localize_script_data = array(
 			'admin_url'				 => esc_url( admin_url() ),
@@ -228,7 +228,7 @@ class RT_Transcoder_Admin {
 			$form = '<button disabled="disabled" type="submit" class="button button-primary bpm-unsubscribe">' . esc_html__( 'Current Plan', 'transcoder' ) . '</button>';
 		} else {
 			$plan_name = 'free' === $name ? 'Try Now' : 'Subscribe';
-			$form = '<a href="https://rtmedia.io/?transcoding-plan=' . $name . '" target="_blank" class="button button-primary">
+			$form = '<a href="https://dev.rtmedia.io/?transcoding-plan=' . $name . '" target="_blank" class="button button-primary">
 						' . esc_html( $plan_name, 'transcoder' ) . '
 					</a>';
 		}

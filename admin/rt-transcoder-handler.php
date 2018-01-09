@@ -29,7 +29,7 @@ class RT_Transcoder_Handler {
 	 * @access   protected
 	 * @var      string    $transcoding_api_url    The URL of the api.
 	 */
-	protected $transcoding_api_url = 'http://api.rtmedia.io/api/v1/';
+	protected $transcoding_api_url = 'http://localhost:8000/api/v1/';
 
 	/**
 	 * The URL of the EDD store.
@@ -38,7 +38,7 @@ class RT_Transcoder_Handler {
 	 * @access   protected
 	 * @var      string    $store_url    The URL of the transcoder api.
 	 */
-	protected $store_url = 'https://rtmedia.io/';
+	protected $store_url = 'http://wp.me/';
 
 	/**
 	 * Contain uploaded media information.
@@ -164,6 +164,9 @@ class RT_Transcoder_Handler {
 	 * @param string $autoformat		If true then generating thumbs only else trancode video.
 	 */
 	function wp_media_transcoding( $wp_metadata, $attachment_id, $autoformat = true ) {
+
+		error_log( $attachment_id );
+
 		if ( empty( $wp_metadata['mime_type'] ) ) {
 			return $wp_metadata;
 		}
@@ -312,7 +315,10 @@ class RT_Transcoder_Handler {
 		if ( function_exists( 'vip_safe_wp_remote_get' ) ) {
 			$validation_page = vip_safe_wp_remote_get( $validate_url );
 		} else {
-			$validation_page = wp_remote_get( $validate_url ); // @codingStandardsIgnoreLine
+			$args = array( 'timeout' => 10 );
+			$validation_page = wp_remote_get( $validate_url, $args ); // @codingStandardsIgnoreLine
+
+			error_log( print_r($validation_page, true) );
 		}
 		if ( ! is_wp_error( $validation_page ) ) {
 			$validation_info = json_decode( $validation_page['body'] );
@@ -340,7 +346,8 @@ class RT_Transcoder_Handler {
 		if ( function_exists( 'vip_safe_wp_remote_get' ) ) {
 			$usage_page = vip_safe_wp_remote_get( $usage_url );
 		} else {
-			$usage_page = wp_remote_get( $usage_url ); // @codingStandardsIgnoreLine
+			$args = array( 'timeout' => 10 );
+			$usage_page = wp_remote_get( $usage_url, $args ); // @codingStandardsIgnoreLine
 		}
 		if ( ! is_wp_error( $usage_page ) ) {
 			$usage_info = json_decode( $usage_page['body'] );
@@ -348,7 +355,7 @@ class RT_Transcoder_Handler {
 			$usage_info = null;
 		}
 
-		update_site_option( 'rt-transcoding-usage', array( $key => $usage_info ) );
+		// update_site_option( 'rt-transcoding-usage', array( $key => $usage_info ) );
 
 		return $usage_info;
 	}
@@ -425,13 +432,13 @@ class RT_Transcoder_Handler {
 			}
 
 			add_action( 'admin_notices', array( $this, 'invalid_license_notice' ) );
-		} elseif ( $is_localhost ) {
+		} /*elseif ( $is_localhost ) {
 			if ( is_multisite() ) {
 				add_action( 'network_admin_notices', array( $this, 'public_host_needed_notice' ) );
 			}
 
 			add_action( 'admin_notices', array( $this, 'public_host_needed_notice' ) );
-		}
+		}*/
 
 		$apikey		= trim( filter_input( INPUT_GET, 'apikey', FILTER_SANITIZE_STRING ) );
 		$page		= filter_input( INPUT_GET, 'page',	 FILTER_SANITIZE_STRING );
@@ -439,7 +446,8 @@ class RT_Transcoder_Handler {
 
 		if ( ! empty( $apikey ) && is_admin() && ! empty( $page ) && ( 'rt-transcoder' === $page ) ) {
 			/* Do not activate transcoding service on localhost */
-			$blacklist = array( '127.0.0.1', '::1' );
+			$blacklist = array( '::1' );
+			// $blacklist = array( '127.0.0.1', '::1' );
 			$remote_addr = rtt_get_remote_ip_address();
 			if ( in_array( wp_unslash( $remote_addr ), $blacklist, true ) ) {
 				$return_page = add_query_arg( array(
@@ -575,6 +583,7 @@ class RT_Transcoder_Handler {
 	 */
 	public function usage_widget() {
 		$usage_details	= get_site_option( 'rt-transcoding-usage' );
+		echo '<pre>';print_r( $usage_details );echo '</pre>';
 		$content		= '';
 		$api_key		= '';
 
@@ -639,6 +648,8 @@ class RT_Transcoder_Handler {
 				if ( 'free' === $plan_name ) {
 					$content .= '<p>' . esc_html__( 'Upgrade for more bandwidth.', 'transcoder' ) . '</p>';
 				}
+
+				echo '<pre>';print_r( $usage_details );echo '</pre>';
 
 				if ( ( 0 >= $usage_details[ $api_key ]->remaining ) ) {
 					$content .= '<div class="error below-h2"><p>' . esc_html__( 'Your usage limit has been reached. Upgrade your plan.', 'transcoder' ) . '</p></div>';
